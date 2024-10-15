@@ -28,9 +28,42 @@ for (city1, city2), distance in distances.items():
 
 
 def dijkstra(graph, start, goal):
-    return nx.dijkstra_path(graph, start, goal), nx.dijkstra_path_length(
-        graph, start, goal
-    )
+    adjacency_list = {node: {} for node in graph.nodes}
+    for node1, node2, data in graph.edges(data=True):
+        adjacency_list[node1][node2] = data["weight"]
+        adjacency_list[node2][node1] = data["weight"]
+
+    distances = {vertex: float("infinity") for vertex in adjacency_list}
+    distances[start] = 0
+    previous_nodes = {vertex: None for vertex in adjacency_list}
+    unvisited = set(adjacency_list.keys())
+
+    while unvisited:
+        current_vertex = min(unvisited, key=lambda vertex: distances[vertex])
+
+        if distances[current_vertex] == float("infinity"):
+            break
+
+        for neighbor, weight in adjacency_list[current_vertex].items():
+            distance = distances[current_vertex] + weight
+
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                previous_nodes[neighbor] = current_vertex
+
+        unvisited.remove(current_vertex)
+
+        if current_vertex == goal:
+            break
+
+    path = []
+    current_vertex = goal
+    while current_vertex is not None:
+        path.append(current_vertex)
+        current_vertex = previous_nodes[current_vertex]
+    path = path[::-1]
+
+    return path, distances[goal]
 
 
 dijkstra_path, dijkstra_cost = dijkstra(G_weighted, start_city, goal_city)
